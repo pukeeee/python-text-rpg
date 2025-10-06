@@ -100,7 +100,7 @@
 - [x] Створити структуру папок (`domain`, `application` і т.д.)
 - [x] Ініціалізувати папки як Python-пакети (файли `__init__.py`)
 - [x] Створити `README.md` для GitHub
-- [ ] Налаштувати `requirements.txt`
+- [x] Налаштувати `requirements.txt`
 - [ ] Налаштувати `pyproject.toml`
 
 ### Етап 3: Ядро домену (Domain Layer)
