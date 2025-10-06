@@ -93,7 +93,7 @@
 Це чекліст основних завдань, які необхідно виконати для запуску першої ігрової версії.
 
 ### Етап 1: Налаштування бази даних
-- [ ] Налаштувати підключення до PostgreSQL.
+- [x] Налаштувати підключення до PostgreSQL.
 - [ ] Створити початкову міграцію Alembic для таблиці персонажів.
 
 ### Етап 2: Налаштування проекту
@@ -104,13 +104,13 @@
 - [ ] Налаштувати `pyproject.toml`
 
 ### Етап 3: Ядро домену (Domain Layer)
-- [ ] Створити Value Objects (`stats.py`, `damage_range.py`)
-- [ ] Створити базові Entities (`character.py`, `item.py`, `enemy.py`)
-- [ ] Створити інтерфейси репозиторіїв (`character_repository.py` та інші)
+- [x] Створити Value Objects (`stats.py`, `damage_range.py`)
+- [x] Створити базові Entities (`character.py`, `item.py`, `enemy.py`)
+- [x] Створити інтерфейси репозиторіїв (`character_repository.py` та інші)
 - [ ] Реалізувати базовий Domain Service (`stats_calculator.py`)
 
 ### Етап 4: Інфраструктура (Infrastructure Layer)
-- [ ] Реалізувати JSON-репозиторій для персонажів (`json_character_repository.py`)
+- [x] Реалізувати PostgreSQL-репозиторій для персонажів.
 - [ ] Реалізувати репозиторії для завантаження предметів та ворогів з JSON.
 
 ### Етап 5: Логіка програми (Application Layer)
