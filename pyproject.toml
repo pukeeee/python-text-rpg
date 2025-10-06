@@ -1,0 +1,24 @@
+# pyproject.toml
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "python-text-rpg"
+version = "0.1.0"
+description = "A text-based RPG game built with Clean Architecture principles."
+requires-python = ">=3.12"
+# Залежності поки що залишаються в requirements.txt для простоти,
+# але в майбутньому їх можна перенести сюди.
+
+[tool.pytest.ini_options]
+# Додаємо корінь проекту до шляхів Python для коректних імпортів
+pythonpath = [
+    ".",
+]
+# Налаштування для запуску тестів
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_functions = "test_*"
+addopts = "-ra -q --strict-markers"

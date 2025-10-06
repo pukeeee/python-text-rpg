@@ -2,3 +2,6 @@
 GEMINI.md
 .env
 .venv
+__pycache__
+.ropeproject
+.pytest_cache

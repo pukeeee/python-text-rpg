@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:15-alpine
+    image: postgres:18
     container_name: rpg_postgres
     environment:
       POSTGRES_DB: rpg_game
@@ -50,6 +50,24 @@ services:
       - ./data:/app/data
       - ./logs:/app/logs
 
+  postgres-test:
+    image: postgres:18-bookworm
+    container_name: rpg_postgres_test
+    environment:
+      POSTGRES_DB: rpg_game_test
+      POSTGRES_USER: rpg_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-change_me_in_production}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rpg_user -d rpg_game_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   postgres_data:
+  postgres_test_data:
   redis_data:
