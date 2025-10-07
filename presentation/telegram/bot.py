@@ -1,41 +1,57 @@
+"""
+Головний файл для запуску Telegram-бота.
+"""
+import os
 import asyncio
 import logging
-import os
 from aiogram import Bot, Dispatcher
+from aiogram.fsm.storage.memory import MemoryStorage
 
-from infrastructure.persistence.database import create_tables
-from presentation.telegram.handlers import router
+# Імпортуємо роутер з обробниками
+from presentation.telegram.handlers import router as handlers_router
 
 # Налаштування логування
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
-async def main():
-    """Головна функція запуску бота"""
+async def start_bot():
+    """
+    Основна функція для налаштування та запуску бота.
+    """
+    # Ініціалізація бота
     bot_token = os.getenv("BOT_TOKEN")
     if not bot_token:
-        logger.critical("BOT_TOKEN не встановлено в змінних оточення!")
-        return
+        logger.error("BOT_TOKEN не встановлено в змінних оточення!")
+        raise ValueError("BOT_TOKEN не встановлено!")
 
     bot = Bot(token=bot_token)
-    dp = Dispatcher()
+    storage = MemoryStorage()
+    dp = Dispatcher(storage=storage)
 
-    # Реєструємо роутер з обробниками
-    dp.include_router(router)
+    # Реєстрація обробників з файлу handlers.py
+    dp.include_router(handlers_router)
 
     logger.info("🚀 Запуск бота...")
-
-    # Створюємо таблиці, якщо їх немає
     try:
-        create_tables()
-        logger.info("✅ База даних готова")
-    except Exception as e:
-        logger.error(f"❌ Помилка підключення до БД або створення таблиць: {e}")
-        logger.error("Перевірте, чи запущено Docker контейнер з PostgreSQL та чи правильні налаштування в .env")
-        return
+        # Починаємо обробку оновлень
+        await dp.start_polling(bot)
+    finally:
+        # Закриваємо сесію бота при зупинці
+        await bot.session.close()
 
-    # Запускаємо бота
-    await dp.start_polling(bot)
+def main():
+    """Точка входу для запуску бота."""
+    try:
+        asyncio.run(start_bot())
+    except (KeyboardInterrupt, SystemExit):
+        logger.info("👋 Бот зупинено.")
+    except ValueError as e:
+        logger.critical(e)
 
-if __name__ == "__main__":
-    asyncio.run(main())
+# Цей блок не буде виконуватися при імпорті, 
+# але залишений для можливості прямого запуску файлу.
+if __name__ == '__main__':
+    main()

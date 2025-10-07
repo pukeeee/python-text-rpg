@@ -1,5 +1,5 @@
 """
-Use Case для початку бою.
+Use Case для початку бою (виправлена версія).
 """
 from dataclasses import dataclass
 import random
@@ -12,7 +12,7 @@ from domain.services.stats_calculator import StatsCalculator
 @dataclass
 class StartCombatRequest:
     character_id: str
-    enemy_id: Optional[str] = None # Може бути None для випадкового ворога
+    enemy_id: Optional[str] = None
 
 @dataclass
 class StartCombatResponse:
@@ -20,6 +20,7 @@ class StartCombatResponse:
     character_health: int
     enemy_name: str
     enemy_health: int
+    enemy_level: int
     message: str
 
 class StartCombatUseCase:
@@ -44,27 +45,30 @@ class StartCombatUseCase:
         if request.enemy_id:
             enemy = self.enemy_repo.get_by_id(request.enemy_id)
         else:
-            # Вибираємо випадкового ворога з локації
+            # Вибираємо випадкового ворога
             enemies_in_location = self.enemy_repo.get_by_location(character.location_id)
             if not enemies_in_location:
                 raise ValueError("В цій локації немає ворогів")
             enemy = random.choice(enemies_in_location)
-        
+
         if not enemy:
             raise ValueError("Ворог не знайдений")
 
         # Розраховуємо характеристики гравця
         player_stats = self.stats_calculator.calculate_total_stats(character)
 
-        # Створюємо стан бою
+        # Створюємо стан бою з усіма необхідними полями
         combat_id = f"combat_{character.id}_{enemy.id}"
         character.combat_state = {
             "combat_id": combat_id,
             "enemy_id": enemy.id,
+            "enemy_level": enemy.level,  # Додано
             "enemy_current_health": enemy.stats.max_health,
+            "enemy_max_health": enemy.stats.max_health,  # Додано
             "turn": 0
         }
 
+        # Зберігаємо
         self.character_repo.save(character)
 
         return StartCombatResponse(
@@ -72,5 +76,6 @@ class StartCombatUseCase:
             character_health=player_stats.health,
             enemy_name=enemy.name,
             enemy_health=enemy.stats.max_health,
+            enemy_level=enemy.level,
             message=f"Бій почався з {enemy.name}!"
         )
