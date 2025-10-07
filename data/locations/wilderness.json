@@ -1,0 +1,43 @@
+{
+  "forest_dark": {
+    "name": "Темний ліс",
+    "type": "wilderness",
+    "description": "Небезпечний ліс, повний монстрів.",
+    "available_actions": ["explore", "travel"],
+    "event_pool": [
+      {
+        "event_type": "combat",
+        "probability": 0.5
+      },
+      {
+        "event_type": "chest",
+        "probability": 0.2
+      },
+      { "event_type": "nothing", "probability": 0.1 }
+    ],
+    "enemy_pool": ["enemies"],
+    "connected_locations": ["town_main"]
+  },
+  "old_road": {
+    "name": "Стара дорога",
+    "type": "wilderness",
+    "description": "Занедбана дорога, де орудують бандити",
+    "available_actions": ["explore", "travel"],
+    "event_pool": [
+      {
+        "event_type": "combat",
+        "probability": 0.5
+      },
+      {
+        "event_type": "chest",
+        "probability": 0.15
+      },
+      {
+        "event_type": "nothing",
+        "probability": 0.35
+      }
+    ],
+    "enemy_pool": ["bandit", "goblin"],
+    "connected_locations": ["town_main", "dark_forest"]
+  }
+}

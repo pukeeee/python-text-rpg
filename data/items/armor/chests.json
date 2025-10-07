@@ -1,0 +1,26 @@
+{
+  "chest_01": {
+    "name": "Шкіряна броня",
+    "type": "armor",
+    "rarity": "common",
+    "level_requirement": 1,
+    "stats": {
+      "armor": 25,
+      "evasion": 15,
+      "health": 20
+    },
+    "description": "Легка шкіряна броня"
+  },
+  "chest_02": {
+    "name": "Кольчуга",
+    "type": "armor",
+    "rarity": "rare",
+    "level_requirement": 3,
+    "stats": {
+      "armor": 50,
+      "evasion": 10,
+      "health": 40
+    },
+    "description": "Міцна кольчуга"
+  }
+}

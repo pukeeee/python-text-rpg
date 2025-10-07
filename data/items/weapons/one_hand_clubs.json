@@ -1,0 +1,17 @@
+{
+  "wooden_club": {
+    "name": "Дерев'яна палиця",
+    "type": "weapon",
+    "rarity": "common",
+    "level_requirement": 1,
+    "stats": {
+      "damage_min": 5,
+      "damage_max": 10,
+      "accuracy": 80,
+      "critical_chance": 3.0,
+      "critical_multiplier": 1.4,
+      "attack_speed": 1.0
+    },
+    "description": "Груба дерев'яна палиця"
+  }
+}

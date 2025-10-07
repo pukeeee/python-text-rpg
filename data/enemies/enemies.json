@@ -1,0 +1,105 @@
+{
+  "bandit_01": {
+    "name": "Розбійник",
+    "level": 8,
+    "stats": {
+      "health": 180,
+      "armor": 80,
+      "evasion": 60,
+      "damage_min": 12,
+      "damage_max": 20,
+      "accuracy": 120,
+      "critical_chance": 8.0,
+      "critical_multiplier": 1.5,
+      "attack_speed": 1.1
+    },
+    "experience_reward": 400,
+    "loot_table": {
+      "gold": {
+        "min": 50,
+        "max": 100
+      },
+      "items": [
+        {
+          "item_id": "sword_01",
+          "probability": 0.2
+        },
+        {
+          "item_id": "health_potion",
+          "probability": 0.5
+        },
+        {
+          "item_id": "leather_armor",
+          "probability": 0.15
+        }
+      ]
+    },
+    "description": "Досвідчений розбійник, що не знає жалю."
+  },
+  "goblin_01": {
+    "name": "Гоблін",
+    "level": 2,
+    "stats": {
+      "health": 80,
+      "armor": 30,
+      "evasion": 15,
+      "damage_min": 4,
+      "damage_max": 8,
+      "accuracy": 80,
+      "critical_chance": 3.0,
+      "critical_multiplier": 1.5,
+      "attack_speed": 1.0
+    },
+    "experience_reward": 50,
+    "loot_table": {
+      "gold": {
+        "min": 10,
+        "max": 30
+      },
+      "items": [
+        {
+          "item_id": "wooden_club",
+          "probability": 0.15
+        },
+        {
+          "item_id": "health_potion",
+          "probability": 0.4
+        }
+      ]
+    },
+    "description": "Маленький зелений гоблін з палицею."
+  },
+  "skeleton_01": {
+    "name": "Скелет-воїн",
+    "level": 5,
+    "stats": {
+      "health": 120,
+      "armor": 50,
+      "evasion": 30,
+      "damage_min": 8,
+      "damage_max": 15,
+      "accuracy": 100,
+      "critical_chance": 5.0,
+      "critical_multiplier": 1.6,
+      "attack_speed": 0.9
+    },
+    "experience_reward": 250,
+    "loot_table": {
+      "gold": {
+        "min": 20,
+        "max": 50
+      },
+      "items": [
+        {
+          "item_id": "chest_01",
+          "probability": 0.1
+        },
+        {
+          "item_id": "iron_sword",
+          "probability": 0.15
+        }
+      ]
+    },
+    "description": "Ожилий скелет, що стискає в руках іржавий меч."
+  }
+}

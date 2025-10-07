@@ -1,0 +1,11 @@
+{
+  "town_main": {
+    "name": "Sanctuary",
+    "type": "town",
+    "description": "A safe town where adventurers can rest and prepare.",
+    "available_actions": ["rest", "change_equipment", "travel"],
+    "event_pool": [],
+    "enemy_pool": [],
+    "connected_locations": ["forest_dark", "cave_entrance"]
+  }
+}

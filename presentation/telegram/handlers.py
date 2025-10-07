@@ -293,14 +293,221 @@ async def cmd_help(message: Message):
     """Обробник команди /help."""
     text = (
         "🎮 <b>Доступні команди:</b>\n\n"
+        "👤 <b>Персонаж:</b>\n"
         "/start - Почати гру / Створити персонажа\n"
         "/stats - Переглянути характеристики\n"
+        "/inventory - Переглянути інвентар\n\n"
+
+        "🗺 <b>Дослідження:</b>\n"
         "/explore - Досліджувати локацію\n"
-        "/attack - Атакувати в бою\n"
         "/travel - Подорожувати до іншої локації\n"
+        "/rest - Відпочити в місті (відновлює здоров'я)\n\n"
+
+        "⚔️ <b>Бій:</b>\n"
+        "/attack - Атакувати ворога\n"
+        "/flee - Втекти з бою\n\n"
+
         "/help - Показати цю довідку\n"
     )
     await message.answer(text, parse_mode="HTML")
+
+
+@router.message(Command("inventory"))
+async def cmd_inventory(message: Message):
+    """Обробник команди /inventory - показ інвентаря"""
+    if not message.from_user:
+        return
+    user_id = message.from_user.id
+
+    with get_session() as session:
+        try:
+            character_repo = PostgresCharacterRepository(session)
+            character = character_repo.get_by_telegram_user_id(user_id)
+
+            if not character:
+                await message.answer("❌ Спочатку створіть персонажа: /start")
+                return
+
+            if not character.inventory:
+                await message.answer("🎒 Ваш інвентар порожній")
+                return
+
+            # Завантажуємо предмети
+            item_repo = JsonItemRepository(DATA_PATH)
+            # items = item_repo.get_many_by_ids(character.inventory)
+
+            # Рахуємо кількість кожного предмета
+            item_counts = {}
+            for item_id in character.inventory:
+                item_counts[item_id] = item_counts.get(item_id, 0) + 1
+
+            text = "🎒 <b>ВАШ ІНВЕНТАР:</b>\n\n"
+
+            for item_id, count in item_counts.items():
+                item = item_repo.get_by_id(item_id)
+                if item:
+                    emoji = "⚔️" if item.type == "weapon" else "🛡" if item.type == "armor" else "🧪"
+                    text += f"{emoji} {item.name} x{count}\n"
+                    text += f"   └ {item.description}\n"
+
+            # Показуємо екіпіровку
+            text += "\n<b>ЕКІПІРОВАНО:</b>\n"
+            equipped_any = False
+            for slot, item_id in character.equipped_items.items():
+                if item_id:
+                    item = item_repo.get_by_id(item_id)
+                    if item:
+                        text += f"• {slot}: {item.name}\n"
+                        equipped_any = True
+
+            if not equipped_any:
+                text += "Нічого не екіпіровано\n"
+
+            await message.answer(text, parse_mode="HTML")
+
+        except Exception as e:
+            logger.error(f"Помилка в cmd_inventory: {e}", exc_info=True)
+            await message.answer(f"❌ Помилка: {str(e)}")
+
+
+@router.message(Command("rest"))
+async def cmd_rest(message: Message):
+    """Обробник команди /rest - відпочинок в місті"""
+    if not message.from_user:
+        return
+    user_id = message.from_user.id
+
+    with get_session() as session:
+        try:
+            character_repo = PostgresCharacterRepository(session)
+            character = character_repo.get_by_telegram_user_id(user_id)
+
+            if not character:
+                await message.answer("❌ Спочатку створіть персонажа: /start")
+                return
+
+            # Перевіряємо чи персонаж в місті
+            location_repo = JsonLocationRepository(DATA_PATH)
+            location = location_repo.get(character.location_id)
+
+            if not location or location.type != "town":
+                await message.answer(
+                    "❌ Відпочивати можна тільки в місті!\n"
+                    "Поверніться до міста за допомогою /travel"
+                )
+                return
+
+            # Перевіряємо чи персонаж в бою
+            if character.combat_state:
+                await message.answer("⚔️ Ви не можете відпочивати під час бою!")
+                return
+
+            # Розраховуємо максимальні значення
+            item_repo = JsonItemRepository(DATA_PATH)
+            stats_calculator = StatsCalculator(item_repo)
+            stats = stats_calculator.calculate_total_stats(character)
+
+            # Відновлюємо здоров'я та ману
+            health_restored = stats.max_health - character.current_health
+            mana_restored = stats.max_mana - character.current_mana
+
+            character.current_health = stats.max_health
+            character.current_mana = stats.max_mana
+
+            character_repo.save(character)
+            session.commit()
+
+            await message.answer(
+                f"😴 <b>Ви відпочили в таверні!</b>\n\n"
+                f"❤️ Здоров'я відновлено: +{health_restored}\n"
+                f"💙 Мана відновлена: +{mana_restored}\n\n"
+                f"Ви готові до нових пригод! /explore",
+                parse_mode="HTML"
+            )
+
+        except Exception as e:
+            logger.error(f"Помилка в cmd_rest: {e}", exc_info=True)
+            await message.answer(f"❌ Помилка: {str(e)}")
+
+
+@router.message(Command("flee"))
+async def cmd_flee(message: Message):
+    """Обробник команди /flee - втеча з бою"""
+    if not message.from_user:
+        return
+    user_id = message.from_user.id
+
+    with get_session() as session:
+        try:
+            character_repo = PostgresCharacterRepository(session)
+            character = character_repo.get_by_telegram_user_id(user_id)
+
+            if not character:
+                await message.answer("❌ Спочатку створіть персонажа: /start")
+                return
+
+            if not character.combat_state:
+                await message.answer("❌ Ви не в бою!")
+                return
+
+            # Шанс на втечу залежить від спритності
+            import random
+            flee_chance = min(0.5 + (character.base_stats.dexterity * 0.02), 0.9)
+
+            if random.random() < flee_chance:
+                # Успішна втеча
+                character.combat_state = None
+                character_repo.save(character)
+                session.commit()
+
+                await message.answer(
+                    "🏃 <b>Ви успішно втекли з бою!</b>\n\n"
+                    "Можливо варто повернутись в місто та відпочити? /travel",
+                    parse_mode="HTML"
+                )
+            else:
+                # Невдала втеча - ворог атакує
+                enemy_repo = JsonEnemyRepository(DATA_PATH)
+                enemy = enemy_repo.get_by_id(character.combat_state['enemy_id'])
+
+                if enemy:
+                    enemy.current_health = character.combat_state['enemy_current_health']
+
+                    item_repo = JsonItemRepository(DATA_PATH)
+                    stats_calculator = StatsCalculator(item_repo)
+                    combat_calculator = CombatCalculator()
+
+                    player_stats = stats_calculator.calculate_total_stats(character)
+                    enemy_stats = enemy.stats
+
+                    # Ворог атакує один раз
+                    is_hit, is_crit, damage = combat_calculator.perform_single_attack(
+                        enemy_stats, player_stats
+                    )
+
+                    if is_hit:
+                        character.take_damage(damage)
+                        character_repo.save(character)
+                        session.commit()
+
+                        crit_text = "💥 КРИТИЧНИЙ УДАР! " if is_crit else ""
+                        await message.answer(
+                            f"❌ <b>Втеча не вдалась!</b>\n\n"
+                            f"Ворог встиг вас вдарити:\n"
+                            f"{crit_text}Урон: {damage}\n\n"
+                            f"❤️ Ваше здоров'я: {character.current_health}\n\n"
+                            f"Продовжуйте битись: /attack",
+                            parse_mode="HTML"
+                        )
+                    else:
+                        await message.answer(
+                            "❌ Втеча не вдалась, але ворог промахнувся!\n\n"
+                            "Спробуйте ще раз: /flee або атакуйте: /attack"
+                        )
+
+        except Exception as e:
+            logger.error(f"Помилка в cmd_flee: {e}", exc_info=True)
+            await message.answer(f"❌ Помилка: {str(e)}")
 
 
 @router.message()

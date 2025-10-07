@@ -1,0 +1,26 @@
+{
+  "health_potion": {
+    "name": "Зілля здоров'я",
+    "type": "consumable",
+    "rarity": "common",
+    "level_requirement": 1,
+    "effects": {
+      "type": "heal",
+      "value": 50,
+      "duration": 0
+    },
+    "description": "Restores 50 health instantly."
+  },
+  "mana_potion": {
+    "name": "Зілля мани",
+    "type": "consumable",
+    "rarity": "common",
+    "level_requirement": 1,
+    "effects": {
+      "type": "restore_mana",
+      "value": 30,
+      "duration": 0
+    },
+    "description": "Відновлює 30 мани"
+  }
+}
