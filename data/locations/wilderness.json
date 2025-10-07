@@ -15,7 +15,7 @@
       },
       { "event_type": "nothing", "probability": 0.1 }
     ],
-    "enemy_pool": ["enemies"],
+    "enemy_pool": ["goblin_01", "skeleton_01"],
     "connected_locations": ["town_main"]
   },
   "old_road": {
@@ -37,7 +37,7 @@
         "probability": 0.35
       }
     ],
-    "enemy_pool": ["bandit", "goblin"],
+    "enemy_pool": ["bandit_01", "goblin_01"],
     "connected_locations": ["town_main", "dark_forest"]
   }
 }
