@@ -17,7 +17,6 @@ class EventGenerator:
         if not event_pool:
             return NothingEvent(description="Тиша та спокій...")
 
-        # Вибираємо подію на основі її ймовірності
         event_type_str = random.choices(
             [event['event_type'] for event in event_pool],
             [event['probability'] for event in event_pool],
@@ -26,13 +25,10 @@ class EventGenerator:
 
         event_type = EventType(event_type_str)
 
-        # Створюємо конкретний екземпляр події
         if event_type == EventType.COMBAT:
-            # Для MVP, ворог буде визначений пізніше в UseCase
-            return CombatEvent(enemy_id="generic_enemy", description="На вас напали!")
+            return CombatEvent(description="На вас напали!", enemy_id="generic_enemy")
         elif event_type == EventType.CHEST:
-            # Вміст скарбу буде визначено пізніше
-            return ChestEvent(loot={}, description="Ви знайшли скарб!")
+            return ChestEvent(description="Ви знайшли скарб!", loot={})
         elif event_type == EventType.TOWN_REST:
             return TownRestEvent(description="Ви в безпечному місті.")
         else:

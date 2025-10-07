@@ -11,6 +11,7 @@ from infrastructure.persistence.database.session import get_session
 from infrastructure.persistence.repositories.postgres_character_repository import PostgresCharacterRepository
 from infrastructure.persistence.repositories.json_item_repository import JsonItemRepository
 from infrastructure.persistence.repositories.json_enemy_repository import JsonEnemyRepository
+from infrastructure.persistence.repositories.json_location_repository import JsonLocationRepository
 
 from domain.services.stats_calculator import StatsCalculator
 from domain.services.combat_calculator import CombatCalculator
@@ -106,7 +107,8 @@ async def cmd_explore(message: Message):
                 return
 
             event_generator = EventGenerator()
-            use_case = GenerateEventUseCase(character_repo, event_generator)
+            location_repo = JsonLocationRepository(DATA_PATH)
+            use_case = GenerateEventUseCase(character_repo, location_repo, event_generator)
             from application.use_cases.events.generate_event_use_case import GenerateEventRequest
             request = GenerateEventRequest(character_id=character.id)
             response = use_case.execute(request)

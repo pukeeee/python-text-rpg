@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:18
+    image: postgres:16
     container_name: rpg_postgres
     environment:
       POSTGRES_DB: rpg_game
@@ -10,22 +10,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init-scripts:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U rpg_user -d rpg_game"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  redis:
-    image: redis:7-alpine
-    container_name: rpg_redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -37,21 +23,19 @@ services:
     container_name: rpg_app
     environment:
       DATABASE_URL: postgresql://rpg_user:${DB_PASSWORD:-change_me_in_production}@postgres:5432/rpg_game
-      REDIS_URL: redis://redis:6379/0
       BOT_TOKEN: ${BOT_TOKEN}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       SQL_ECHO: ${SQL_ECHO:-false}
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_healthy
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs
 
   postgres-test:
-    image: postgres:18-bookworm
+    profiles: ["test"]
+    image: postgres:16-bookworm
     container_name: rpg_postgres_test
     environment:
       POSTGRES_DB: rpg_game_test
@@ -59,8 +43,6 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:-change_me_in_production}
     ports:
       - "5433:5432"
-    volumes:
-      - postgres_test_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U rpg_user -d rpg_game_test"]
       interval: 10s
@@ -69,5 +51,3 @@ services:
 
 volumes:
   postgres_data:
-  postgres_test_data:
-  redis_data:
