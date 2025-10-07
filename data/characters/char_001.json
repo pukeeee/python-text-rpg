@@ -1,0 +1,28 @@
+{
+  "id": "char_001",
+  "name": "Warrior",
+  "level": 5,
+  "experience": 1250,
+  "base_stats": {
+    "strength": 15,
+    "dexterity": 10,
+    "intelligence": 8,
+    "base_health": 100,
+    "base_mana": 50
+  },
+  "current_health": 180,
+  "current_mana": 60,
+  "equipped_items": {
+    "weapon": "sword_01",
+    "armor": "chest_01",
+    "helmet": "helmet_01",
+    "boots": null,
+    "gloves": null,
+    "ring_1": null,
+    "ring_2": null,
+    "amulet": null
+  },
+  "inventory": ["health_potion", "mana_potion", "sword_02"],
+  "location_id": "town_main",
+  "combat_state": null
+}

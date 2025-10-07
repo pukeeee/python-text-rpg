@@ -1,0 +1,30 @@
+{
+  "id": "skeleton_01",
+  "name": "Скелет-воїн",
+  "level": 5,
+  "stats": {
+    "health": 120,
+    "armor": 50,
+    "evasion": 30,
+    "damage_min": 8,
+    "damage_max": 15,
+    "accuracy": 100,
+    "critical_chance": 5.0,
+    "critical_multiplier": 1.6,
+    "attack_speed": 0.9
+  },
+  "experience_reward": 250,
+  "loot_table": {
+    "gold": {
+      "min": 20,
+      "max": 50
+    },
+    "items": [
+      {
+        "item_id": "chest_01",
+        "probability": 0.1
+      }
+    ]
+  },
+  "description": "Ожилий скелет, що стискає в руках іржавий меч."
+}

@@ -3,6 +3,7 @@ import pytest
 from application.use_cases.character import GetCharacterStatsUseCase
 from application.dto.character_dto import GetCharacterStatsRequest
 from infrastructure.persistence.repositories.postgres_character_repository import PostgresCharacterRepository
+from infrastructure.persistence.repositories.json_item_repository import JsonItemRepository
 from domain.services.stats_calculator import StatsCalculator
 from domain.entities.character import Character
 from domain.value_objects.stats import BaseStats
@@ -14,7 +15,8 @@ class TestGetCharacterStatsUseCase:
         """Тест успішного отримання характеристик"""
         # Arrange - створюємо персонажа
         repo = PostgresCharacterRepository(db_session)
-        calculator = StatsCalculator()
+        item_repo = JsonItemRepository(data_path="data")
+        calculator = StatsCalculator(item_repository=item_repo)
 
         character = Character(
             telegram_user_id=56789,
@@ -46,7 +48,8 @@ class TestGetCharacterStatsUseCase:
     def test_get_stats_character_not_found(self, db_session):
         """Тест коли персонаж не знайдений"""
         repo = PostgresCharacterRepository(db_session)
-        calculator = StatsCalculator()
+        item_repo = JsonItemRepository(data_path="data")
+        calculator = StatsCalculator(item_repository=item_repo)
 
         use_case = GetCharacterStatsUseCase(repo, calculator)
         request = GetCharacterStatsRequest(telegram_user_id=99999)

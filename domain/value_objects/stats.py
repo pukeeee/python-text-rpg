@@ -31,11 +31,13 @@ class BaseStats:
         )
 
 
+from .combat_stats_base import CombatStatsBase
+
 # domain/value_objects/stats.py - ДОПОЛНИТЬ:
 
 @dataclass(frozen=True)
-class Stats:
-    """Полный набор характеристик персонажа (рассчитанных)"""
+class Stats(CombatStatsBase):
+    """Повний набір характеристик персонажа (розрахованих)"""
     # Базовые
     strength: int
     dexterity: int

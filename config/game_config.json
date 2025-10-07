@@ -1,0 +1,30 @@
+{
+  "base_character": {
+    "starting_level": 1,
+    "starting_stats": {
+      "strength": 10,
+      "dexterity": 10,
+      "intelligence": 10,
+      "base_health": 100,
+      "base_mana": 50
+    }
+  },
+  "leveling": {
+    "experience_per_level": [
+      0, 100, 250, 450, 700, 1000, 1400, 1900, 2500, 3200
+    ],
+    "stats_per_level": {
+      "strength": 2,
+      "dexterity": 2,
+      "intelligence": 2,
+      "health": 10,
+      "mana": 5
+    }
+  },
+  "combat_formulas": {
+    "hit_chance_formula": "attacker_accuracy / (attacker_accuracy + defender_evasion / 4)",
+    "damage_reduction_formula": "damage * (1 - armor / (armor + 10 * damage))",
+    "evasion_formula": "1 - hit_chance",
+    "critical_damage_formula": "damage * critical_multiplier"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "id": "forest_dark",
+  "name": "Dark Forest",
+  "type": "wilderness",
+  "description": "A dangerous forest filled with monsters and treasures.",
+  "available_actions": ["explore", "travel"],
+  "event_pool": [
+    {
+      "event_type": "combat",
+      "probability": 0.5
+    },
+    {
+      "event_type": "chest",
+      "probability": 0.2
+    },
+    {
+      "event_type": "nothing",
+      "probability": 0.3
+    }
+  ],
+  "connected_locations": ["town_main", "cave_entrance"]
+}

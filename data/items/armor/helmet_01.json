@@ -1,0 +1,12 @@
+{
+  "id": "helmet_01",
+  "name": "Залізний шолом",
+  "type": "helmet",
+  "rarity": "common",
+  "level_requirement": 2,
+  "stats": {
+    "armor": 30,
+    "health": 15
+  },
+  "description": "Простий, але надійний залізний шолом."
+}

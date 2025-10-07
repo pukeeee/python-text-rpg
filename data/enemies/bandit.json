@@ -1,0 +1,34 @@
+{
+  "id": "bandit_01",
+  "name": "Розбійник",
+  "level": 8,
+  "stats": {
+    "health": 180,
+    "armor": 80,
+    "evasion": 60,
+    "damage_min": 12,
+    "damage_max": 20,
+    "accuracy": 120,
+    "critical_chance": 8.0,
+    "critical_multiplier": 1.5,
+    "attack_speed": 1.1
+  },
+  "experience_reward": 400,
+  "loot_table": {
+    "gold": {
+      "min": 50,
+      "max": 100
+    },
+    "items": [
+      {
+        "item_id": "sword_01",
+        "probability": 0.2
+      },
+      {
+        "item_id": "health_potion",
+        "probability": 0.5
+      }
+    ]
+  },
+  "description": "Досвідчений розбійник, що не знає жалю."
+}
