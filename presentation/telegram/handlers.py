@@ -3,9 +3,9 @@
 """
 import os
 import logging
-from aiogram import Router
+from aiogram import Router, F
 from aiogram.filters import Command
-from aiogram.types import Message
+from aiogram.types import Message, CallbackQuery
 
 from infrastructure.persistence.database.session import get_session
 from infrastructure.persistence.repositories.postgres_character_repository import PostgresCharacterRepository
@@ -19,12 +19,15 @@ from domain.services.event_generator import EventGenerator
 from domain.services.loot_generator import LootGenerator
 
 from application.use_cases.character import CreateCharacterUseCase, GetCharacterStatsUseCase
+from application.use_cases.character.travel import TravelUseCase
 from application.use_cases.combat.start_combat import StartCombatUseCase
 from application.use_cases.combat.perform_attack_use_case import PerformAttackUseCase
 from application.use_cases.events.generate_event_use_case import GenerateEventUseCase
 from application.dto.character_dto import CreateCharacterRequest, GetCharacterStatsRequest
+from application.dto.travel_dto import TravelRequest
 
 from .formatters import format_stats_response, format_attack_response
+from .keyboards import get_travel_keyboard
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -117,8 +120,9 @@ async def cmd_explore(message: Message):
                 enemy_repo = JsonEnemyRepository(DATA_PATH)
                 item_repo = JsonItemRepository(DATA_PATH)
                 stats_calculator = StatsCalculator(item_repo)
+                location_repo = JsonLocationRepository(DATA_PATH) # Потрібен для вибору ворога
                 start_combat_uc = StartCombatUseCase(
-                    character_repo, enemy_repo, stats_calculator
+                    character_repo, enemy_repo, stats_calculator, location_repo
                 )
                 from application.use_cases.combat.start_combat import StartCombatRequest
                 combat_response = start_combat_uc.execute(
@@ -196,6 +200,94 @@ async def cmd_attack(message: Message):
             await message.answer(f"❌ Помилка: {str(e)}")
 
 
+@router.message(Command("travel"))
+async def cmd_travel(message: Message):
+    """Обробник команди /travel."""
+    if not message.from_user:
+        logger.warning("Повідомлення без користувача в cmd_travel.")
+        return
+    user_id = message.from_user.id
+
+    with get_session() as session:
+        try:
+            character_repo = PostgresCharacterRepository(session)
+            character = character_repo.get_by_telegram_user_id(user_id)
+
+            if not character:
+                await message.answer("❌ Спочатку створіть персонажа: /start")
+                return
+
+            if character.combat_state:
+                await message.answer("⚔️ Ви не можете подорожувати під час бою!")
+                return
+
+            location_repo = JsonLocationRepository(DATA_PATH)
+            current_location = location_repo.get(character.location_id)
+
+            if not current_location or not current_location.connected_locations:
+                await message.answer("🗺 Звідси немає куди подорожувати.")
+                return
+
+            destinations = [
+                loc for loc_id in current_location.connected_locations
+                if (loc := location_repo.get(loc_id))
+            ]
+
+            if not destinations:
+                await message.answer("🗺 Не знайдено доступних локацій для подорожі.")
+                return
+
+            keyboard = get_travel_keyboard(destinations)
+            await message.answer(
+                f"Ви знаходитесь в: <b>{current_location.name}</b>\n\n"
+                f"Куди бажаєте відправитись?",
+                reply_markup=keyboard,
+                parse_mode="HTML"
+            )
+
+        except Exception as e:
+            logger.error(f"Помилка в cmd_travel: {e}", exc_info=True)
+            await message.answer(f"❌ Помилка: {str(e)}")
+
+
+@router.callback_query(F.data.startswith("travel_to:"))
+async def on_travel_callback(callback: CallbackQuery):
+    """Обробник для кнопок подорожі."""
+    if not callback.from_user:
+        return
+
+    user_id = callback.from_user.id
+    destination_id = callback.data.split(':')[1]
+
+    with get_session() as session:
+        try:
+            character_repo = PostgresCharacterRepository(session)
+            character = character_repo.get_by_telegram_user_id(user_id)
+            if not character:
+                await callback.answer("Персонаж не знайдений.", show_alert=True)
+                return
+
+            location_repo = JsonLocationRepository(DATA_PATH)
+            use_case = TravelUseCase(character_repo, location_repo)
+            request = TravelRequest(character_id=character.id, destination_id=destination_id)
+            response = use_case.execute(request)
+            session.commit()
+
+            if response.success:
+                await callback.message.edit_text(
+                    f"✅ {response.message}\n\n"
+                    f"Тепер ви можете досліджувати нову місцевість: /explore"
+                )
+            else:
+                await callback.message.edit_text(f"❌ {response.message}")
+
+        except Exception as e:
+            logger.error(f"Помилка в on_travel_callback: {e}", exc_info=True)
+            await callback.answer(f"Помилка: {str(e)}", show_alert=True)
+
+    await callback.answer()
+
+
 @router.message(Command("help"))
 async def cmd_help(message: Message):
     """Обробник команди /help."""
@@ -205,6 +297,7 @@ async def cmd_help(message: Message):
         "/stats - Переглянути характеристики\n"
         "/explore - Досліджувати локацію\n"
         "/attack - Атакувати в бою\n"
+        "/travel - Подорожувати до іншої локації\n"
         "/help - Показати цю довідку\n"
     )
     await message.answer(text, parse_mode="HTML")

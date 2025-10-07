@@ -1,5 +1,5 @@
 """
-Use Case для початку бою (виправлена версія).
+Use Case для початку бою.
 """
 from dataclasses import dataclass
 import random
@@ -7,6 +7,7 @@ from typing import Optional
 
 from domain.repositories.character_repository import ICharacterRepository
 from domain.repositories.enemy_repository import IEnemyRepository
+from domain.repositories.location_repository import ILocationRepository  # Додано
 from domain.services.stats_calculator import StatsCalculator
 
 @dataclass
@@ -16,11 +17,8 @@ class StartCombatRequest:
 
 @dataclass
 class StartCombatResponse:
-    combat_id: str
-    character_health: int
     enemy_name: str
     enemy_health: int
-    enemy_level: int
     message: str
 
 class StartCombatUseCase:
@@ -28,11 +26,13 @@ class StartCombatUseCase:
         self,
         character_repo: ICharacterRepository,
         enemy_repo: IEnemyRepository,
-        stats_calculator: StatsCalculator
+        stats_calculator: StatsCalculator,
+        location_repo: ILocationRepository  # Додано
     ):
         self.character_repo = character_repo
         self.enemy_repo = enemy_repo
         self.stats_calculator = stats_calculator
+        self.location_repo = location_repo  # Додано
 
     def execute(self, request: StartCombatRequest) -> StartCombatResponse:
         character = self.character_repo.get(request.character_id)
@@ -42,40 +42,39 @@ class StartCombatUseCase:
         if character.combat_state:
             raise ValueError("Персонаж вже в бою")
 
+        location = self.location_repo.get(character.location_id)
+        if not location:
+            raise ValueError("Локація персонажа не знайдена.")
+
+        # --- Вибір ворога ---
+        enemy_id = None
         if request.enemy_id:
-            enemy = self.enemy_repo.get_by_id(request.enemy_id)
-        else:
-            # Вибираємо випадкового ворога
-            enemies_in_location = self.enemy_repo.get_by_location(character.location_id)
-            if not enemies_in_location:
-                raise ValueError("В цій локації немає ворогів")
-            enemy = random.choice(enemies_in_location)
+            enemy_id = request.enemy_id
+        elif location.enemy_pool:
+            enemy_id = random.choice(location.enemy_pool)
+        
+        if not enemy_id:
+            raise ValueError("В цій локації немає ворогів для бою.")
 
+        enemy = self.enemy_repo.get_by_id(enemy_id)
         if not enemy:
-            raise ValueError("Ворог не знайдений")
+            raise ValueError(f"Ворог з ID '{enemy_id}' не знайдений.")
 
-        # Розраховуємо характеристики гравця
-        player_stats = self.stats_calculator.calculate_total_stats(character)
+        # --- Розрахунок характеристик ворога ---
+        enemy_stats = self.stats_calculator.calculate_enemy_stats(enemy, character.level)
 
-        # Створюємо стан бою з усіма необхідними полями
-        combat_id = f"combat_{character.id}_{enemy.id}"
+        # --- Оновлення стану персонажа ---
         character.combat_state = {
-            "combat_id": combat_id,
-            "enemy_id": enemy.id,
-            "enemy_level": enemy.level,  # Додано
-            "enemy_current_health": enemy.stats.max_health,
-            "enemy_max_health": enemy.stats.max_health,  # Додано
+            "enemy_id": enemy_id,
+            "enemy_level": enemy.level,
+            "enemy_current_health": enemy_stats.max_health,
+            "enemy_max_health": enemy_stats.max_health,
             "turn": 0
         }
-
-        # Зберігаємо
         self.character_repo.save(character)
 
         return StartCombatResponse(
-            combat_id=combat_id,
-            character_health=player_stats.health,
+            message=f"Бій почався з {enemy.name}!",
             enemy_name=enemy.name,
-            enemy_health=enemy.stats.max_health,
-            enemy_level=enemy.level,
-            message=f"Бій почався з {enemy.name}!"
+            enemy_health=enemy_stats.max_health
         )

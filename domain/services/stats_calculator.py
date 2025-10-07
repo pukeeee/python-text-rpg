@@ -1,12 +1,22 @@
 from domain.entities.character import Character
+from domain.entities.enemy import Enemy
 from domain.value_objects.stats import Stats
+from domain.value_objects.enemy_stats import EnemyStats
 from domain.repositories.item_repository import IItemRepository
 
 class StatsCalculator:
-    """Сервіс для розрахунку підсумкових характеристик персонажа"""
+    """Сервіс для розрахунку підсумкових характеристик персонажа та ворогів."""
 
     def __init__(self, item_repository: IItemRepository):
         self.item_repository = item_repository
+
+    def calculate_enemy_stats(self, enemy: Enemy, character_level: int) -> EnemyStats:
+        """
+        Розраховує характеристики ворога. В майбутньому може включати логіку скейлінгу.
+        Для MVP просто повертає базові характеристики.
+        """
+        # TODO: Додати логіку скейлінгу характеристик ворога від рівня персонажа
+        return enemy.stats
 
     def calculate_total_stats(self, character: Character) -> Stats:
         """

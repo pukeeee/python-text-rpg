@@ -13,10 +13,8 @@
       "event_type": "chest",
       "probability": 0.2
     },
-    {
-      "event_type": "nothing",
-      "probability": 0.3
-    }
-  ],
-  "connected_locations": ["town_main", "cave_entrance"]
+        {"event_type": "nothing", "probability": 0.1}
+    ],
+    "enemy_pool": ["bandit", "goblin_01", "skeleton"],
+    "connected_locations": ["town_main"]
 }

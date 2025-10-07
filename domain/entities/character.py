@@ -147,6 +147,10 @@ class Character:
         return self.current_health - old_health
 
 
+    def travel_to(self, destination_id: str):
+        """Змінює поточну локацію персонажа."""
+        self.location_id = destination_id
+
 
     # --- Представлення об'єкта ---
 

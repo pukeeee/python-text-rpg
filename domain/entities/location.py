@@ -15,4 +15,5 @@ class Location:
     description: str
     available_actions: List[str]
     event_pool: List[Dict[str, Any]]
+    enemy_pool: List[str]
     connected_locations: List[str]

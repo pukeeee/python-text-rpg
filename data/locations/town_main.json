@@ -4,6 +4,6 @@
   "type": "town",
   "description": "A safe town where adventurers can rest and prepare.",
   "available_actions": ["rest", "change_equipment", "travel"],
-  "event_pool": [],
-  "connected_locations": ["forest_dark", "cave_entrance"]
-}
+      "event_pool": [],
+      "enemy_pool": [],
+      "connected_locations": ["forest_dark", "cave_entrance"]}
