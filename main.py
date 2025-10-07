@@ -1,64 +1,40 @@
+# main.py
+
 import asyncio
+import os
 from dotenv import load_dotenv
 
-# Загрузка переменных окружения
+# Завантажити змінні оточення
 load_dotenv()
 
 async def main():
-    """Главная функция приложения"""
-    print("🎮 RPG Game starting...")
+    """Головна функція - запуск Telegram бота"""
 
-    # Для MVP - простой CLI
-    # Позже заменим на Telegram бота
+    # Перевірка обов'язкових змінних оточення
+    bot_token = os.getenv("BOT_TOKEN")
+    database_url = os.getenv("DATABASE_URL")
 
-    from infrastructure.persistence.database import create_tables, get_session
-    from infrastructure.persistence.repositories.postgres_character_repository import PostgresCharacterRepository
-    from domain.value_objects.stats import BaseStats
-    from domain.entities.character import Character
-    from domain.services.stats_calculator import StatsCalculator
+    if not bot_token:
+        print("❌ ПОМИЛКА: BOT_TOKEN не встановлено в .env файлі!")
+        print("Створіть .env файл та додайте:")
+        print("BOT_TOKEN=your_bot_token_here")
+        return
 
-    # Создание таблиц если их нет
-    create_tables()
-    print("✅ Database tables ready")
+    if not database_url:
+        print("❌ ПОМИЛКА: DATABASE_URL не встановлено в .env файлі!")
+        print("Додайте в .env файл:")
+        print("DATABASE_URL=postgresql://rpg_user:password@localhost:5432/rpg_game")
+        return
 
-    # Простое демо для проверки
-    with get_session() as session:
-        repo = PostgresCharacterRepository(session)
-        calculator = StatsCalculator()
+    print("🎮 RPG Game - Telegram Bot")
+    print("=" * 50)
 
-        # Создание тестового персонажа
-        test_char = Character(
-            telegram_user_id=1,
-            name="Test Hero",
-            base_stats=BaseStats(
-                strength=10,
-                dexterity=10,
-                intelligence=10,
-                base_health=100,
-                base_mana=50
-            )
-        )
-
-        # Сохранение
-        repo.save(test_char)
-        session.commit()
-        print(f"✅ Created character: {test_char.name}")
-
-        # Загрузка
-        loaded = repo.get(test_char.id)
-        if loaded:
-            print(f"✅ Loaded character: {loaded.name}")
-
-            # Расчёт характеристик
-            stats = calculator.calculate_total_stats(loaded)
-            print("✅ Character stats calculated:")
-            print(f"   Health: {stats.health}/{stats.max_health}")
-            print(f"   Damage: {stats.damage_min}-{stats.damage_max}")
-            print(f"   Armor: {stats.armor}, Evasion: {stats.evasion}")
-        else:
-            print("❌ Помилка: не вдалося завантажити персонажа.")
-
-    print("🎉 All systems operational!")
+    # Запуск бота
+    from presentation.telegram.bot import main as bot_main
+    await bot_main()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\n👋 Бот зупинено")
