@@ -234,3 +234,210 @@ class TestPostgresCharacterRepository:
         assert hash1 != hash3
         # Перевірка, що хеш не порожній
         assert isinstance(hash1, str) and len(hash1) == 64
+
+    def test_get_character_with_no_equipment(self, db_session):
+        """Перевіряє, що отримання персонажа без екіпіровки працює коректно."""
+        # 1. Підготовка: Створюємо персонажа без екіпіровки
+        repo = PostgresCharacterRepository(db_session)
+        character_id = str(uuid4())
+        base_stats = BaseStats(strength=12, dexterity=14, intelligence=10, base_health=110, base_mana=55)
+
+        character = Character(
+            id=character_id,
+            telegram_user_id=12345,
+            name="NoEquipmentHero",
+            level=5,
+            experience=1500,
+            base_stats=base_stats,
+            current_health=100,
+            current_mana=50,
+            location_id="test_location",
+            equipped_items={},  # Пустий словник екіпіровки
+            inventory=['potion_1']
+        )
+
+        repo.save(character)
+        db_session.commit()
+
+        # 2. Дія: Отримуємо персонажа
+        retrieved_character = repo.get(character_id)
+
+        # 3. Перевірка: Екіпіровка повинна мати всі слоти з None
+        assert retrieved_character is not None
+        # Перевіряємо, що всі значення в словнику екіпіровки дорівнюють None
+        for slot_value in retrieved_character.equipped_items.values():
+            assert slot_value is None
+
+    def test_get_character_with_no_inventory(self, db_session):
+        """Перевіряє, що отримання персонажа без інвентарю працює коректно."""
+        # 1. Підготовка: Створюємо персонажа без інвентарю
+        repo = PostgresCharacterRepository(db_session)
+        character_id = str(uuid4())
+        base_stats = BaseStats(strength=10, dexterity=10, intelligence=10, base_health=100, base_mana=50)
+
+        character = Character(
+            id=character_id,
+            telegram_user_id=23456,
+            name="NoInventoryHero",
+            level=1,
+            experience=0,
+            base_stats=base_stats,
+            current_health=100,
+            current_mana=50,
+            location_id="test_location",
+            equipped_items={'weapon': 'basic_sword'},
+            inventory=[]  # Пустий список інвентарю
+        )
+
+        repo.save(character)
+        db_session.commit()
+
+        # 2. Дія: Отримуємо персонажа
+        retrieved_character = repo.get(character_id)
+
+        # 3. Перевірка: Інвентар повинен бути порожнім списком
+        assert retrieved_character is not None
+        assert retrieved_character.inventory == []
+
+    def test_save_character_with_empty_equipment_slots(self, db_session):
+        """Перевіряє збереження персонажа з частково заповненою екіпіровкою."""
+        # 1. Підготовка: Створюємо персонажа з частково заповненою екіпіровкою
+        repo = PostgresCharacterRepository(db_session)
+        character_id = str(uuid4())
+        base_stats = BaseStats(strength=15, dexterity=15, intelligence=15, base_health=150, base_mana=75)
+
+        # Встановлюємо тільки збрю та обладунок, інші слоти залишаємо порожніми
+        character = Character(
+            id=character_id,
+            telegram_user_id=34567,
+            name="PartialEquipmentHero",
+            level=3,
+            experience=500,
+            base_stats=base_stats,
+            current_health=150,
+            current_mana=75,
+            location_id="test_location",
+            equipped_items={
+                'weapon': 'sword_of_power',
+                'armor': 'light_armor'
+                # Інші слоти відсутні
+            },
+            inventory=['potion_1', 'potion_2']
+        )
+
+        repo.save(character)
+        db_session.commit()
+
+        # 2. Дія: Отримуємо персонажа
+        retrieved_character = repo.get(character_id)
+
+        # 3. Перевірка: Перевіряємо, що лише встановлені слоти збереглися правильно
+        assert retrieved_character is not None
+        assert retrieved_character.equipped_items.get('weapon') == 'sword_of_power'
+        assert retrieved_character.equipped_items.get('armor') == 'light_armor'
+        # Інші слоти мають бути None
+        assert retrieved_character.equipped_items.get('helmet') is None
+        assert retrieved_character.equipped_items.get('boots') is None
+        assert retrieved_character.equipped_items.get('gloves') is None
+        assert retrieved_character.equipped_items.get('ring_1') is None
+        assert retrieved_character.equipped_items.get('ring_2') is None
+        assert retrieved_character.equipped_items.get('amulet') is None
+
+    def test_to_domain_method_with_no_related_data(self, db_session):
+        """Перевіряє внутрішній метод _to_domain з відсутністю пов'язаних даних."""
+        repo = PostgresCharacterRepository(db_session)
+        character_id = str(uuid4())
+
+        # Створюємо персонажа з пустими значеннями для пов'язаних моделей
+        character = Character(
+            id=character_id,
+            telegram_user_id=45678,
+            name="MinimalHero",
+            level=1,
+            experience=0,
+            base_stats=BaseStats(strength=10, dexterity=10, intelligence=10, base_health=100, base_mana=50),
+            current_health=100,
+            current_mana=50,
+            location_id="test_location",
+            equipped_items={},
+            inventory=[]
+        )
+
+        repo.save(character)  # Це збереже персонажа і порожню екіпіровку та інвентар
+        db_session.commit()
+
+        # Отримуємо персонажа з бази даних для перевірки
+        retrieved_character = repo.get(character_id)
+
+        # Перевіряємо, що метод _to_domain правильно обробляє відсутність даних
+        assert retrieved_character is not None
+        assert retrieved_character.name == "MinimalHero"
+        # Перевіряємо, що всі значення в словнику екіпіровки дорівнюють None
+        for slot_value in retrieved_character.equipped_items.values():
+            assert slot_value is None
+        assert retrieved_character.inventory == []
+        # combat_state має бути None, якщо пов'язаний об'єкт не створений
+        # (це відбувається автоматично, оскільки ми не створювали combat_state в моделі)
+
+    def test_save_empty_inventory(self, db_session):
+        """Перевіряє збереження персонажа з порожнім інвентарем."""
+        repo = PostgresCharacterRepository(db_session)
+        character_id = str(uuid4())
+
+        # Створюємо персонажа з порожнім інвентарем
+        character = Character(
+            id=character_id,
+            telegram_user_id=56789,
+            name="EmptyInventoryHero",
+            level=2,
+            experience=100,
+            base_stats=BaseStats(12, 12, 12, 120, 60),
+            current_health=120,
+            current_mana=60,
+            location_id="empty_shop",
+            equipped_items={'weapon': 'training_sword'},
+            inventory=[]  # Порожній інвентар
+        )
+
+        repo.save(character)
+        db_session.commit()
+
+        # Отримуємо персонажа
+        retrieved_character = repo.get(character_id)
+
+        # Перевіряємо, що інвентар дійсно порожній
+        assert retrieved_character is not None
+        assert retrieved_character.inventory == []
+
+        # Перевіряємо, що екіпіровка збереглася
+        assert retrieved_character.equipped_items.get('weapon') == 'training_sword'
+
+    def test_get_stats_cache_when_no_cache_exists(self, db_session):
+        """Перевіряє, що get_stats_cache повертає None, коли кешу немає в БД."""
+        repo = PostgresCharacterRepository(db_session)
+        character_id = str(uuid4())
+
+        # Створюємо та зберігаємо персонажа, але не зберігаємо кеш статистики
+        character = Character(
+            id=character_id,
+            telegram_user_id=67890,
+            name="NoCacheHero",
+            level=1,
+            experience=0,
+            base_stats=BaseStats(10, 10, 10, 100, 50),
+            current_health=100,
+            current_mana=50,
+            location_id="cacheless_zone",
+            equipped_items={},
+            inventory=[]
+        )
+
+        repo.save(character)
+        db_session.commit()
+
+        # Перевіряємо, що кеш статистики не існує
+        equipment = ['old_shield']
+        cached_stats = repo.get_stats_cache(character_id, equipment)
+
+        # Кеш не існує, має повертати None
+        assert cached_stats is None

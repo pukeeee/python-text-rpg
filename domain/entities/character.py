@@ -55,6 +55,7 @@ class Character:
         """Перевіряє, чи живий персонаж."""
         return self.current_health > 0
 
+
     def take_damage(self, amount: int) -> None:
         """
         Накладає шкоду на персонажа.
@@ -66,6 +67,86 @@ class Character:
         self.current_health -= amount
         if self.current_health < 0:
             self.current_health = 0
+
+
+    def equip_item(self, item_id: str, slot: str) -> Optional[str]:
+        """Экипировать предмет. Возвращает ID снятого предмета"""
+        old_item = self.equipped_items.get(slot)
+        if old_item:
+            self.inventory.append(old_item)
+
+        if item_id in self.inventory:
+            self.inventory.remove(item_id)
+
+        self.equipped_items[slot] = item_id
+        return old_item
+
+
+    def unequip_item(self, slot: str) -> Optional[str]:
+        """Снять предмет со слота"""
+        item_id = self.equipped_items.get(slot)
+        if not item_id:
+            return None
+
+        self.equipped_items[slot] = None
+        self.inventory.append(item_id)
+        return item_id
+
+
+    def add_item(self, item_id: str) -> None:
+        """Добавить предмет в инвентарь"""
+        self.inventory.append(item_id)
+
+
+    def remove_item(self, item_id: str) -> bool:
+        """Удалить предмет из инвентаря"""
+        if item_id in self.inventory:
+            self.inventory.remove(item_id)
+            return True
+        return False
+
+
+    def gain_experience(self, amount: int) -> bool:
+        """Получить опыт. Возвращает True если был level up"""
+        self.experience += amount
+
+        # Простая формула для MVP
+        required_exp = 100 * (1.5 ** (self.level - 1))
+
+        if self.experience >= required_exp:
+            return self.level_up()
+        return False
+
+
+    def level_up(self) -> bool:
+        """Повысить уровень"""
+        self.level += 1
+        self.experience = 0
+
+        # Увеличение характеристик
+        self.base_stats = BaseStats(
+            strength=self.base_stats.strength + 2,
+            dexterity=self.base_stats.dexterity + 2,
+            intelligence=self.base_stats.intelligence + 2,
+            base_health=self.base_stats.base_health + 10,
+            base_mana=self.base_stats.base_mana + 5
+        )
+
+        # Восстановление до максимума
+        self.current_health = self.base_stats.base_health
+        self.current_mana = self.base_stats.base_mana
+
+        return True
+
+
+    def heal(self, amount: int) -> int:
+        """Восстановить здоровье. Возвращает фактически восстановленное количество"""
+        old_health = self.current_health
+        max_health = self.base_stats.base_health  # Временно, потом через StatsCalculator
+        self.current_health = min(self.current_health + amount, max_health)
+        return self.current_health - old_health
+
+
 
     # --- Представлення об'єкта ---
 

@@ -1,0 +1,14 @@
+{
+  "id": "sword_01",
+  "name": "Iron Sword",
+  "type": "weapon",
+  "rarity": "common",
+  "level_requirement": 1,
+  "stats": {
+    "damage_min": 5,
+    "damage_max": 10,
+    "accuracy": 85,
+    "critical_chance": 5.0
+  },
+  "description": "A basic iron sword"
+}
