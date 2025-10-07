@@ -92,7 +92,7 @@
 
 ### Етап 1: Налаштування бази даних
 - [x] Налаштувати підключення до PostgreSQL.
-- [x] Створити початкову міграцію Alembic для таблиці персонажів.
+- [x] Створити початкову міграцію Alembic для всіх таблиць.
 
 ### Етап 2: Налаштування проекту
 - [x] Створити структуру папок (`domain`, `application` і т.д.)
@@ -102,9 +102,9 @@
 - [x] Налаштувати `pyproject.toml`
 
 ### Етап 3: Ядро домену (Domain Layer)
-- [x] Створити Value Objects (`stats.py`, `damage_range.py`)
-- [x] Створити базові Entities (`character.py`, `item.py`, `enemy.py`)
-- [x] Створити інтерфейси репозиторіїв (`character_repository.py` та інші)
+- [x] Створити Value Objects (`stats.py`, `damage_range.py`, `item_rarity.py`)
+- [x] Створити базові Entities (`character.py`, `item.py`)
+- [x] Створити інтерфейси репозиторіїв (`character_repository.py`)
 - [x] Реалізувати базовий Domain Service (`stats_calculator.py`)
 
 ### Етап 4: Інфраструктура (Infrastructure Layer)
@@ -112,18 +112,20 @@
 - [ ] Реалізувати репозиторії для завантаження предметів та ворогів з JSON.
 
 ### Етап 5: Логіка програми (Application Layer)
-- [ ] Створити DTO для передачі даних між шарами.
-- [ ] Реалізувати Use Case: `create_character_use_case.py`.
-- [ ] Реалізувати Use Case: `get_character_stats_use_case.py`.
+- [x] Створити DTO для передачі даних між шарами.
+- [x] Реалізувати Use Case: `create_character_use_case.py`.
+- [x] Реалізувати Use Case: `get_character_stats_use_case.py`.
 - [ ] Реалізувати Use Case: `generate_event_use_case.py` (для дослідження).
 - [ ] Реалізувати Use Case: `perform_attack_use_case.py` (для бою).
 
 ### Етап 6: Ігровий контент
-- [ ] Створити JSON-файли для 1-2 типів зброї в `data/items/weapons/`.
+- [x] Створити JSON-файл для зброї (`sword_01.json`).
 - [ ] Створити JSON-файл для зілля здоров'я в `data/items/consumables/`.
 - [ ] Створити JSON-файли для 1-2 типів ворогів в `data/enemies/`.
 - [ ] Створити базовий конфігураційний файл `config/game_config.json`.
 
 ### Етап 7: Інтерфейс (Presentation Layer)
-- [ ] Створити базовий CLI (`main.py`) для взаємодії з грою.
-- [ ] Реалізувати в CLI команди: `new`, `stats`, `explore`, `attack`.
+- [x] Створити Telegram бот (`presentation/telegram/bot.py`) для взаємодії з грою.
+- [x] Реалізувати в боті команди: `/start` (створення персонажа) та `/stats`.
+- [ ] Реалізувати команду `/explore` (дослідження).
+- [ ] Реалізувати команду `/attack` (бій).
